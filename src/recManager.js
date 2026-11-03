@@ -60,7 +60,7 @@ async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollec
 	let recs = await Promise.all(
 		tmdbRecs.map(async (rec, index) => {
 			const imdbId = await idConverter.tmdbToImdb(rec.id, type, apiKey);
-			return imdbId ? { imdbId: imdbId, tmdbId: rec.id, ranking: index + 1 } : null;
+			return imdbId ? { imdbId: imdbId, tmdbId: rec.id, name: rec.title || rec.name, year: (rec.release_date || rec.first_air_date || "").slice(0, 4), ranking: index + 1 } : null;
 		}),
 	);
 
@@ -93,7 +93,7 @@ async function getTraktRecs(searchImdb, type, apiKey, validKey) {
 	// Get IMDB Id for all recs and add it's placement ranking
 	const recs = await Promise.all(
 		traktRecs.map(async (rec, index) => {
-			return { imdbId: rec.ids.imdb, tmdbId: rec.ids.tmdb, ranking: index + 1 };
+			return { imdbId: rec.ids.imdb, tmdbId: rec.ids.tmdb, name: rec.title, year: rec.year, ranking: index + 1 };
 		}),
 	);
 
