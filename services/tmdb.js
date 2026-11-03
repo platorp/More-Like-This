@@ -148,7 +148,7 @@ async function fetchCollectionRecs(tmdbId, mediaType, apiKey) {
 				collectionParts.forEach((part) => {
 					const releaseDate = new Date(part.release_date);
 					if (part.id !== tmdbId && part.release_date && releaseDate <= today) {
-						const media = { id: part.id };
+						const media = { id: part.id, title: part.title || part.name, release_date: part.release_date };
 						collectionRecs.push(media);
 					}
 				});

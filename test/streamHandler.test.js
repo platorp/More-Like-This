@@ -11,7 +11,7 @@ const config = { apiKeys: credentials, streamOrder: ['detail', 'recs'], enabledS
 const metadataSource = { source: 'cinemeta', language: 'en', tmdbApiKey: credentials.tmdb, traktApiKey: credentials.trakt };
 
 // Run the real handler, merge, normalization and caches; replace external service boundaries.
-function harness({ tmdb = ['tt1000001'], trakt = ['tt1000002'], metadata = {}, failTmdb = false, failMetadata = false } = {}) {
+function harness({ tmdb = ['tt1000001'], trakt = ['tt1000002'], collection, metadata = {}, failTmdb = false, failMetadata = false } = {}) {
   const counts = { metadata: 0, tmdb: 0, trakt: 0, other: 0 };
   const modules = new Map();
   const stubs = {
@@ -55,6 +55,15 @@ function harness({ tmdb = ['tt1000001'], trakt = ['tt1000002'], metadata = {}, f
     new Function('require', 'module', 'exports', '__filename', '__dirname', fs.readFileSync(filename, 'utf8'))
       (requireFile, module, module.exports, filename, path.dirname(filename));
     return module.exports;
+  }
+  if (collection) {
+    // Exercise the collection adapter itself; fixtures are raw TMDB HTTP payloads.
+    const filename = path.join(root, 'services/tmdb.js');
+    const module = { exports: {} };
+    const collectionFetch = async url => ({ json: async () => url.includes('/collection/') ? { parts: collection } : { belongs_to_collection: { id: 1 } } });
+    new Function('require', 'module', fs.readFileSync(filename, 'utf8'))(
+      name => name === 'node-fetch' ? collectionFetch : load(createRequire(filename).resolve(name)), module);
+    stubs['services/tmdb.js'].fetchCollectionRecs = module.exports.fetchCollectionRecs;
   }
   const { streamHandler } = load(path.join(root, 'src/streamHandler.js'));
   return { counts, run: (id = 'tt1000000', type = 'movie', origin = '', userConfig = config) => streamHandler(origin, type, id, userConfig, metadataSource) };
@@ -139,4 +148,14 @@ test('long and incomplete metadata stays compact without empty labels', async ()
   assert.match(streams[0].description, /^A title/);
   assert.ok(streams[0].description.length < 400);
   assert.ok(!/undefined|null|⭐|⏱|🎭/.test(streams[0].description));
+});
+
+test('collection titles survive failed enrichment even when also recommended by TMDB and Trakt', async () => {
+  const app = harness({
+    tmdb: ['tt1000001'], trakt: ['tt1000001'], failMetadata: true,
+    collection: [{ id: 1000001, title: 'Collection title', release_date: '2020-01-01' }],
+  });
+  const { streams } = await app.run('tt1000000', 'movie', '', { ...config, includeTmdbCollection: true });
+  assert.equal(streams.length, 1);
+  assert.match(streams[0].description, /^Collection title \(2020\)/);
 });
