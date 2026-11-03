@@ -70,5 +70,4 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	setupOrderDragAndDrop(".catalog-order", "catalogOrder");
-	setupOrderDragAndDrop(".stream-order", "streamOrder");
 });

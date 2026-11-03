@@ -79,50 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		// Stream Order
-		const streamOrder = document.querySelector(".stream-order");
-		const streamOrderInput = document.getElementById("streamOrder");
-		if (streamOrderInput && config.streamOrder) {
-			const order = config.streamOrder;
-			const itemsMap = {};
-
-			// Map current items by their name
-			const currentItems = [...streamOrder.querySelectorAll(".stream-item")];
-			currentItems.forEach((item) => {
-				const name = item.dataset.value;
-				if (name) itemsMap[name] = item;
-			});
-
-			// Reorder DOM elements based on saved order
-			order.forEach((name) => {
-				const item = itemsMap[name];
-				if (item) streamOrder.appendChild(item);
-			});
-
-			streamOrderInput.value = config.streamOrder.join(",");
-		}
-
-		// Stream Button Enabled
-		if (config.enabledStreamButtons) {
-			const detailCheckbox = document.getElementById("streamDetailEnabled");
-			const appCheckbox = document.getElementById("streamAppEnabled");
-			const webCheckbox = document.getElementById("streamWebEnabled");
-			const recsCheckbox = document.getElementById("streamRecEnabled");
-
-			if (detailCheckbox) {
-				detailCheckbox.checked = !!config.enabledStreamButtons.detail;
-			}
-			if (appCheckbox) {
-				appCheckbox.checked = !!config.enabledStreamButtons.app;
-			}
-			if (webCheckbox) {
-				webCheckbox.checked = !!config.enabledStreamButtons.web;
-			}
-			if (recsCheckbox) {
-				recsCheckbox.checked = !!config.enabledStreamButtons.recs;
-			}
-		}
-
 		const enableTitleSearchingCheckbox = document.getElementById("enableTitleSearching");
 		if (enableTitleSearchingCheckbox) {
 			if (config.enableTitleSearching) {

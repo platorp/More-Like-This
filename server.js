@@ -27,13 +27,6 @@ async function loadUserConfig(config) {
 		catalogOrder: ["tmdb", "trakt", "simkl", "gemini", "tasteDive", "watchmode"],
 		metadataSource: "cinemeta",
 		language: "en",
-		streamOrder: ["detail", "app", "web", "recs"],
-		enabledStreamButtons: {
-			detail: false,
-			app: false,
-			web: false,
-			recs: false,
-		},
 		includeTmdbCollection: false,
 		enableTitleSearching: false,
 	};
@@ -247,13 +240,6 @@ async function startServer() {
 				metadataSource: metadataSource,
 				language: metadataSource === "tmdb" ? req.body.language || "en" : "en",
 				keepEnglishPosters: req.body.keepEnglishPoster === "on" || false,
-				streamOrder: req.body.streamOrder.split(",") || ["detail", "app", "web", "recs"],
-				enabledStreamButtons: {
-					detail: req.body.streamDetailEnabled === "on" || false,
-					app: req.body.streamAppEnabled === "on" || false,
-					web: req.body.streamWebEnabled === "on" || false,
-					recs: req.body.streamRecEnabled === "on" || false,
-				},
 				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};

@@ -188,24 +188,16 @@ npm start
 - **Keep English Poster**:  
   Preserve the original English poster artwork even when metadata is set to a non-English language.
 
-- **Stream Button**:  
-  Drag and drop to reorder stream buttons, or disable specific ones from appearing.
-
-  Available buttons:
-
-  - See details – Opens the item’s detail page in Stremio.
-  - Search on App – Search for recommendations inside the Stremio app.
-  - Search on Web – Search for recommendations inside the Stremio web.
-  - Show similar movies/series – Generates and displays recommendations as streams in Stremio
+- **Recommendations in Your Stream List**:
+  Recommended titles appear directly in the stream list. This view combines TMDB and Trakt, removes duplicates and shows up to 10 titles. Add either or both provider keys; unavailable providers do not block the other source.
 
 # Usage
 
-For any movie or TV show, use the stream buttons provided by the addon to quickly access recommendations.
+Open a movie or TV show's stream list to see recommendations immediately. Each entry includes available year, rating, runtime, genres and a short emoji-labelled synopsis. Select a recommendation to open its own Stremio title page and use your normal playback addons there.
 
 ## Getting Recs From Search Bar
 
-Click the **Search in App** or **Search in Web** stream button to automatically search Stremio using the item’s ID.
-You can also enter an ID manually in Stremio’s search bar.
+Enter an ID manually in Stremio’s search bar to use the existing recommendation catalogs.
 
 If title-based search is enabled, you can also search by entering the title. For the best results, use the exact title and include:
 
@@ -225,16 +217,14 @@ Examples:
 - `tmdb:1726`
 - `kitsu:12`
 
-## Getting Recs as Streams
+## Direct Stream Recommendations
 
-Click the **Show Recommendations** stream button to display recommendations directly as streams on the current page in Stremio.
-A combined catalog of all enabled sources will be shown.
+The stream list uses only TMDB and Trakt, merged and ranked together. A title recommended by both is prioritized. Existing encrypted install links work with this view; the old stream-button preferences are no longer used.
 
-Limitations:
-
-- Stremio’s UI always reflects the original movie/series info and does not update per recommendation. As a workaround, recommendation details are added to the Summary section.
-- For TV series, you cannot directly select episodes from the recommendation list. Instead, the addon provides an optional stream button that takes you to the series’ detail page.
-- This method will generally be much slower because metadata must be generated for every recommendation. Performance decreases as more sources are enabled.
+- Select a recommendation to open its title page; it is a navigation entry rather than a playable video stream.
+- Series recommendations open the recommended show's own episode selection.
+- Provider results and metadata are cached. Enrichment is limited to 10 titles, descriptions are kept short, and a metadata failure falls back to the provider's title and year.
+- No video or images are proxied through the addon. Formatting is built into More Like This and does not require AIOStreams or a Tamtaro installation.
 
 ## Tips
 

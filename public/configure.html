@@ -19,9 +19,9 @@
 			<div class="content">
 				<div class="instructions">
 					<p>
-						Find movie and TV show recommendations right inside Stremio! This addon gathers recommendation for any title from multiple sources and brings them straight to your Stremio library. <br /><br />
+						Find movie and TV show recommendations directly in your Stremio stream list, with ratings, genres, and short descriptions. <br /><br />
 
-						Getting started is easy — just add your own API keys for the recommendation sources you want to use. Need a key? Click the links under each input field to grab yours for free! You only need keys for the sources you want — for example, if you only want TMDB recommendations, you only need a TMDB key.<br /><br />
+						Add and verify a TMDB key, a Trakt key, or both. Their recommendations are combined into one list. Additional sources below are available for recommendation catalogs.<br /><br />
 
 						For instructions on how to use this addon or if you have any questions, please visit the project's <a href="https://github.com/rama1997/More-Like-This">GitHub page</a> for the full documentation.
 					</p>
@@ -216,67 +216,11 @@
 						</label>
 					</div>
 
-					<div id="streamOrderSection" class="stream-order-section">
-						<div class="label-with-tooltip">
-							<label>Stream Buttons</label>
-							<div class="tooltip-container">
-								<div class="tooltip-icon">?</div>
-								<div class="tooltip-text">This addon provides a set of streams in Stremio that act as buttons for easier access. You can drag to reorder them or disable any you don’t need.</div>
-							</div>
-						</div>
-
-						<div class="stream-order">
-							<div id="stream-detail" class="stream-item" data-value="detail">
-								<span class="catalog-icon">≡</span>
-								<span class="stream-name">Go to detail page</span>
-								<div class="stream-controls">
-									<label class="mini-toggle">
-										<input type="checkbox" id="streamDetailEnabled" name="streamDetailEnabled" checked />
-										<span class="mini-slider"></span>
-									</label>
-									<span class="control-label">Enabled</span>
-								</div>
-							</div>
-
-							<div id="stream-rec" class="stream-item" data-value="recs">
-								<span class="catalog-icon">≡</span>
-								<span class="stream-name">Show recommendations</span>
-								<div class="stream-controls">
-									<label class="mini-toggle">
-										<input type="checkbox" id="streamRecEnabled" name="streamRecEnabled" checked />
-										<span class="mini-slider"></span>
-									</label>
-									<span class="control-label">Enabled</span>
-								</div>
-							</div>
-
-							<div id="stream-app" class="stream-item" data-value="app">
-								<span class="catalog-icon">≡</span>
-								<span class="stream-name">Search on App</span>
-								<div class="stream-controls">
-									<label class="mini-toggle">
-										<input type="checkbox" id="streamAppEnabled" name="streamAppEnabled" checked />
-										<span class="mini-slider"></span>
-									</label>
-									<span class="control-label">Enabled</span>
-								</div>
-							</div>
-
-							<div id="stream-web" class="stream-item" data-value="web">
-								<span class="catalog-icon">≡</span>
-								<span class="stream-name">Search on Web</span>
-								<div class="stream-controls">
-									<label class="mini-toggle">
-										<input type="checkbox" id="streamWebEnabled" name="streamWebEnabled" checked />
-										<span class="mini-slider"></span>
-									</label>
-									<span class="control-label">Enabled</span>
-								</div>
-							</div>
-						</div>
-
-						<input type="hidden" name="streamOrder" id="streamOrder" value="" />
-					</div>
+					<section class="form-group" aria-labelledby="streamRecommendationsHeading">
+						<h2 class="toggle-label" id="streamRecommendationsHeading">Recommendations in Your Stream List</h2>
+						<p class="key-help">See up to 10 recommended titles from TMDB and Trakt, combined into one list. Add either or both keys above to get started.</p>
+						<p class="key-help">Each title includes available ratings, runtime, genres, and a short synopsis. Select a recommendation to open its Stremio title page.</p>
+					</section>
 
 					<div class="form-group">
 						<label for="rpdbApiKey">RPDB API Key</label>
