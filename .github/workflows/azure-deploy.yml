@@ -1,0 +1,65 @@
+name: Test and deploy to Azure
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-more-like-this-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Run regression tests
+        run: node --test
+
+      - name: Package runtime source
+        run: zip -q -r deploy.zip server.js config.js package.json package-lock.json services src utils public data LICENSE
+
+      - name: Sign in to Azure with a short-lived token
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to the existing app
+        uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
+        with:
+          app-name: more-like-this-95057530
+          package: deploy.zip
+
+      - name: Check the live manifest
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          (async () => {
+            const response = await fetch('https://more-like-this-95057530.azurewebsites.net/manifest.json', {
+              signal: AbortSignal.timeout(60000),
+            });
+            assert.equal(response.status, 200);
+            assert.equal((await response.json()).id, 'community.morelikethis');
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
