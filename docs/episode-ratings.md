@@ -18,6 +18,6 @@ Generate it locally with the same `ENCRYPTION_KEY` as the server, using `utils/e
 
 IMDb ratings come from the daily-built [IMDb episode dataset](https://github.com/ya0903/imdb-episode-dataset), which covers the top 10,000 series and episodes with at least 10 IMDb votes. It is a community mirror built from [IMDb's non-commercial datasets](https://data.imdb.com/non-commercial-datasets/), not an IMDb-operated API. Use is personal/non-commercial.
 
-TMDB season details supply the fallback. The wrapper does not substitute the show's overall score. Provider JSON requests have a 2 MiB limit, rating enrichment has a 2.5-second deadline, and provider lookups share a bounded 128-entry, 12-hour cache. AIOMetadata fetches have a 10-second timeout. Unavailable rating providers preserve the original metadata.
+TMDB season details supply the fallback. IMDb-numbered episodes require a matching release day before a TMDB fallback score is applied. TMDB-numbered episodes use their direct TMDB scores, since IMDb season numbering is not assumed equivalent. The wrapper does not substitute the show's overall score. Provider JSON requests have a 2 MiB limit, rating enrichment has a 2.5-second deadline, and provider lookups share a bounded 128-entry, 12-hour cache. AIOMetadata fetches have a 10-second timeout. Unavailable rating providers preserve the original metadata.
 
 The existing Azure F1 instance remains subject to its normal cold starts and shared limits. No paid resource or new database is needed. Native Stremio display of episode descriptions varies by client.

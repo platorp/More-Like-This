@@ -62,19 +62,20 @@ function createEpisodeRatingsRouter({ fetchImpl = globalThis.fetch, ratingTimeou
    const season = Number(match[2]), episode = Number(match[3]);
    if ((video.season != null && video.season !== season) || (video.episode != null && video.episode !== episode)) return [];
    if (video.released && Date.parse(video.released) > Date.now()) return [];
-   return [{ index, season, episode }];
+   return [{ index, season, episode, identity: match[1] }];
   });
   if (!eligible.length) return meta;
   const deadline = AbortSignal.timeout(ratingTimeoutMs);
   const imdbSignal = AbortSignal.any([deadline, AbortSignal.timeout(Math.max(1, Math.min(1200, ratingTimeoutMs / 2)))]);
   let imdb = null;
-  if (imdbId) {
+  if (imdbId && eligible.some(entry => entry.identity === imdbId)) {
    try { imdb = await cached(`imdb:${imdbId}`, () => json(`https://raw.githubusercontent.com/ya0903/imdb-episode-dataset/main/data/shows/${imdbId}.json`, imdbSignal, true)); }
    catch { /* Scores are optional; retain useful metadata when a provider fails. */ }
    if (imdb?.id !== imdbId) imdb = null;
   }
   const scores = new Map();
   for (const entry of eligible) {
+   if (entry.identity !== imdbId) continue;
    const score = imdb?.seasons?.[entry.season]?.[entry.episode];
    if (validScore(score?.r, score?.v)) scores.set(entry.index, { source: 'IMDb', value: score.r });
   }
@@ -96,6 +97,12 @@ function createEpisodeRatingsRouter({ fetchImpl = globalThis.fetch, ratingTimeou
         if (details?.season_number !== season || !Array.isArray(details.episodes)) return;
         for (const entry of missing.filter(entry => entry.season === season)) {
          const episode = details.episodes.find(row => row.season_number === season && row.episode_number === entry.episode);
+         // IMDb and TMDB can number episodes differently; require a matching release day across providers.
+         if (entry.identity === imdbId) {
+          const released = Date.parse(meta.videos[entry.index].released);
+          const aired = Date.parse(episode?.air_date);
+          if (!Number.isFinite(released) || !Number.isFinite(aired) || new Date(released).toISOString().slice(0, 10) !== new Date(aired).toISOString().slice(0, 10)) continue;
+         }
          if (validScore(episode?.vote_average, episode?.vote_count)) scores.set(entry.index, { source: 'TMDB', value: episode.vote_average });
         }
        } catch { /* A missing season must not remove metadata for other seasons. */ }

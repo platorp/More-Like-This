@@ -43,7 +43,7 @@ test('adds exact episode IMDb ratings to titles and synopsis without changing ar
 });
 
 test('falls back only missing IMDb episodes to correctly labelled TMDB episode scores', async t => {
- const app = await harness(t,{payload:makeMeta([episode(1,1),episode(1,2)]),tmdbEpisodes:[{season_number:1,episode_number:2,vote_average:7.25,vote_count:14}]});
+ const app = await harness(t,{payload:makeMeta([episode(1,1),episode(1,2)]),tmdbEpisodes:[{season_number:1,episode_number:2,vote_average:7.25,vote_count:14,air_date:'2020-01-01'}]});
  const data=await(await app.request()).json();assert.match(data.meta.videos[0].title,/IMDb 8.7/);assert.match(data.meta.videos[1].title,/TMDB 7.3/);assert.equal(data.meta.videos[1].overview,'⭐ TMDB episode: 7.3/10\n\nOriginal synopsis');
 });
 
@@ -98,4 +98,17 @@ test('rejects a different series dataset and wrong-season TMDB responses', async
 
 test('unsupported request IDs and types do not cause unrelated metadata requests', async t => {
  const app=await harness(t);for(const path of ['meta/movie/tt1000000.json','meta/series/kitsu:99.json','meta/series/..%2Fadmin.json'])assert.equal((await app.request(path)).status,404);assert.equal(app.calls.length,0);
+});
+
+test('IMDb-to-TMDB fallback rejects conflicting or missing episode release dates', async t => {
+ for(const [released,air_date]of [['2020-01-01T00:00:00Z','2021-06-01'],[undefined,'2020-01-01'],['2020-01-01T00:00:00Z',undefined],['invalid','2020-01-01']]){
+  const payload=makeMeta([episode(1,1,{released})]);const app=await harness(t,{payload,imdbData:null,tmdbEpisodes:[{season_number:1,episode_number:1,vote_average:9.9,vote_count:100,air_date}]});
+  const expected=JSON.parse(JSON.stringify(payload));assert.deepEqual(await(await app.request()).json(),expected);
+ }
+});
+
+test('TMDB episode IDs use direct TMDB scores without assuming IMDb numbering equivalence', async t => {
+ const payload={meta:{id:'tmdb:321',imdb_id:'tt1000000',videos:[episode(1,1,{id:'tmdb:321:1:1'})]}};
+ const app=await harness(t,{payload,tmdbEpisodes:[{season_number:1,episode_number:1,vote_average:7.3,vote_count:100}]});
+ const result=await(await app.request('meta/series/tmdb:321.json')).json();assert.match(result.meta.videos[0].title,/TMDB 7.3/);assert.equal(app.calls.filter(u=>u.includes('imdb-episode-dataset')).length,0);
 });
