@@ -45,7 +45,7 @@ function harness({ tmdb = ['tt1000001'], trakt = ['tt1000002'], collection, meta
     stubs['services/' + source + '.js'] = new Proxy({}, { get: () => async () => { counts.other++; throw Error('Unwanted provider request'); } });
   }
   function load(filename) {
-    const relative = path.relative(root, filename);
+    const relative = path.relative(root, filename).split(path.sep).join('/');
     if (stubs[relative]) return stubs[relative];
     if (modules.has(filename)) return modules.get(filename).exports;
     const module = { exports: {} };
@@ -72,8 +72,8 @@ function harness({ tmdb = ['tt1000001'], trakt = ['tt1000002'], collection, meta
 test('shows enriched recommendation titles immediately instead of generic buttons', async () => {
   const app = harness({ metadata: { name: 'Interstellar', year: 2014, imdbRating: '8.7', runtime: '169 min', genres: ['Adventure', 'Sci-Fi'], description: 'A journey beyond Earth.' } });
   const result = await app.run();
-  assert.equal(result.streams.length, 2);
-  const entry = result.streams[0];
+  assert.equal(result.streams.length, 3);
+  const entry = result.streams[1];
   assert.match(entry.description, /Interstellar.*2014/);
   assert.match(entry.description, /⭐.*8\.7/);
   assert.match(entry.description, /⏱.*169 min/);
@@ -85,7 +85,7 @@ test('shows enriched recommendation titles immediately instead of generic button
 
 test('combines only Trakt and TMDB and ranks shared titles first', async () => {
   const app = harness({ tmdb: ['tt1000001', 'tt1000000', 'tt1000002'], trakt: ['tt1000003', 'tt1000002'] });
-  const { streams } = await app.run();
+  const { streams: [, ...streams] } = await app.run();
   assert.deepEqual(streams.map(s => s.externalUrl.split('/').at(-1)), ['tt1000002', 'tt1000001', 'tt1000003']);
   assert.equal(app.counts.other, 0);
 });
@@ -93,7 +93,7 @@ test('combines only Trakt and TMDB and ranks shared titles first', async () => {
 test('limits enrichment to ten unique recommendations and never includes the current title', async () => {
   const ids = Array.from({ length: 18 }, (_, i) => 'tt' + (1000000 + i));
   const app = harness({ tmdb: ids, trakt: ids });
-  const { streams } = await app.run();
+  const { streams: [, ...streams] } = await app.run();
   assert.equal(streams.length, 10);
   assert.equal(new Set(streams.map(s => s.externalUrl)).size, 10);
   assert.ok(streams.every(s => !s.externalUrl.endsWith('/tt1000000')));
@@ -102,25 +102,25 @@ test('limits enrichment to ten unique recommendations and never includes the cur
 
 test('series episodes and legacy recommendation IDs link to the recommended series title', async () => {
   for (const id of ['tt1000000:2:3', 'mlt-rec-tt1000000:2:3', 'mlt-meta-tt1000000']) {
-    const { streams } = await harness().run(id, 'series', 'https://web.stremio.com');
+    const { streams: [, ...streams] } = await harness().run(id, 'series', 'https://web.stremio.com');
     assert.equal(streams[0]?.externalUrl, 'https://web.stremio.com/#/detail/series/tt1000001');
   }
 });
 
 test('metadata failures keep useful provider titles and omit unavailable details', async () => {
-  const { streams } = await harness({ failMetadata: true }).run();
+  const { streams: [, ...streams] } = await harness({ failMetadata: true }).run();
   assert.equal(streams.length, 2);
   assert.match(streams[0].description, /Title tt1000001/);
   assert.ok(!/undefined|null|⭐|⏱|📖/.test(streams[0].description));
 });
 
 test('one failed or missing provider does not hide the other provider results', async () => {
-  const { streams } = await harness({ failTmdb: true }).run();
+  const { streams: [, ...streams] } = await harness({ failTmdb: true }).run();
   assert.equal(streams.length, 1);
   assert.ok(streams[0].externalUrl.endsWith('/tt1000002'));
   const app = harness();
   const userConfig = { ...config, apiKeys: { trakt: credentials.trakt } };
-  assert.equal((await app.run('tt1000000', 'movie', '', userConfig)).streams.length, 1);
+  assert.equal((await app.run('tt1000000', 'movie', '', userConfig)).streams.length, 2);
 });
 
 test('repeated requests reuse provider and metadata caches', async () => {
@@ -136,7 +136,7 @@ test('repeated requests reuse provider and metadata caches', async () => {
 
 test('non-IMDb identifiers are converted and unsupported input makes no requests', async () => {
   for (const id of ['tmdb:1000000', 'trakt:1000000', 'kitsu:1000000']) {
-    assert.equal((await harness().run(id)).streams.length, 2);
+    assert.equal((await harness().run(id)).streams.length, 3);
   }
   const app = harness();
   for (const id of ['unknown:123', 'tt123<script>', '']) assert.equal((await app.run(id)).streams.length, 0);
@@ -144,7 +144,7 @@ test('non-IMDb identifiers are converted and unsupported input makes no requests
 });
 
 test('long and incomplete metadata stays compact without empty labels', async () => {
-  const { streams } = await harness({ metadata: { name: '  A\n title  ', imdbRating: '', runtime: '', genres: [], description: 'x'.repeat(2000) } }).run();
+  const { streams: [, ...streams] } = await harness({ metadata: { name: '  A\n title  ', imdbRating: '', runtime: '', genres: [], description: 'x'.repeat(2000) } }).run();
   assert.match(streams[0].description, /^A title/);
   assert.ok(streams[0].description.length < 400);
   assert.ok(!/undefined|null|⭐|⏱|🎭/.test(streams[0].description));
@@ -155,7 +155,27 @@ test('collection titles survive failed enrichment even when also recommended by 
     tmdb: ['tt1000001'], trakt: ['tt1000001'], failMetadata: true,
     collection: [{ id: 1000001, title: 'Collection title', release_date: '2020-01-01' }],
   });
-  const { streams } = await app.run('tt1000000', 'movie', '', { ...config, includeTmdbCollection: true });
+  const { streams: [, ...streams] } = await app.run('tt1000000', 'movie', '', { ...config, includeTmdbCollection: true });
   assert.equal(streams.length, 1);
   assert.match(streams[0].description, /^Collection title \(2020\)/);
+});
+
+test('prepends exactly one blank divider for movie and series suggestions', async () => {
+  for (const type of ['movie', 'series']) {
+    for (const origin of ['', 'https://web.stremio.com']) {
+      const { streams } = await harness().run('tt1000000', type, origin);
+      const base = origin ? 'https://web.stremio.com/#' : 'stremio://';
+      assert.deepEqual(streams[0], { name: '\u00a0', description: '\u00a0', externalUrl: `${base}/detail/${type}/tt1000000` });
+      assert.equal(streams.filter(s => !s.name.trim() && !s.description.trim()).length, 1);
+      assert.ok(streams.slice(1).every(s => s.name.includes('More Like This')));
+      assert.equal(streams[0].url, undefined);
+    }
+  }
+});
+
+test('does not return a divider without suggestions', async () => {
+  for (const options of [{ tmdb: [], trakt: [] }, { tmdb: ['tt1000000'], trakt: ['tt1000000'] }, { failTmdb: true, trakt: [] }]) {
+    assert.deepEqual(await harness(options).run(), { streams: [], cacheMaxAge: 0 });
+  }
+  assert.deepEqual(await harness().run('tt1000000', 'movie', '', { apiKeys: {} }), { streams: [], cacheMaxAge: 0 });
 });

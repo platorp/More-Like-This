@@ -60,6 +60,8 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 			};
 		}));
 		const entries = streams.filter(Boolean);
+		// shortcut: Stremio has no divider type; use a blank link to this title until it supports non-interactive rows.
+		if (entries.length) entries.unshift({ name: "\u00a0", description: "\u00a0", externalUrl: `${base}/detail/${type}/${imdbId}` });
 		return { streams: entries, cacheMaxAge: entries.length ? 300 : 0 };
 	} catch {
 		return { streams: [], cacheMaxAge: 0 };
