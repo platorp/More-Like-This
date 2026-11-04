@@ -35,16 +35,16 @@ async function harness(t, { payload = makeMeta([episode(1, 1)]), imdbData = imdb
 test('adds exact episode IMDb ratings to titles and synopsis without changing artwork or IDs', async t => {
  const payload = makeMeta([episode(1, 1), episode(2, 1)]); const before = structuredClone(payload);
  const app = await harness(t, { payload }); const result = await (await app.request()).json();
- assert.equal(result.meta.videos[0].title, 'Episode 1 · ⭐ 8.7');
- assert.equal(result.meta.videos[1].title, 'Episode 1 · ⭐ 6.1');
- assert.equal(result.meta.videos[0].overview, '⭐ IMDb episode: 8.7/10\n\nOriginal synopsis');
+ assert.equal(result.meta.videos[0].title, 'Episode 1 · 🔥 8.7');
+ assert.equal(result.meta.videos[1].title, 'Episode 1 · 👍 6.1');
+ assert.equal(result.meta.videos[0].overview, '🔥 IMDb episode: 8.7/10\n\nOriginal synopsis');
  for (let i=0;i<2;i++) { const {title,overview,description,...unchanged}=result.meta.videos[i]; const {title:a,overview:b,...original}=before.meta.videos[i];assert.deepEqual(unchanged,original); }
  assert.equal(result.meta.poster, before.meta.poster); assert.deepEqual(payload,before);
 });
 
 test('falls back only missing IMDb episodes to correctly labelled TMDB episode scores', async t => {
  const app = await harness(t,{payload:makeMeta([episode(1,1),episode(1,2)]),tmdbEpisodes:[{season_number:1,episode_number:2,vote_average:7.25,vote_count:14,air_date:'2020-01-01'}]});
- const data=await(await app.request()).json();assert.match(data.meta.videos[0].title,/⭐ 8.7/);assert.match(data.meta.videos[1].title,/TMDB 7.3/);assert.equal(data.meta.videos[1].overview,'⭐ TMDB episode: 7.3/10\n\nOriginal synopsis');
+ const data=await(await app.request()).json();assert.match(data.meta.videos[0].title,/🔥 8.7/);assert.match(data.meta.videos[1].title,/TMDB 7.3/);assert.equal(data.meta.videos[1].overview,'⭐ TMDB episode: 7.3/10\n\nOriginal synopsis');
 });
 
 test('leaves unknown, future, mismatched and unrated episodes unchanged instead of using show scores', async t => {
@@ -55,7 +55,7 @@ test('leaves unknown, future, mismatched and unrated episodes unchanged instead 
 
 test('season-zero specials and name/description-only metadata retain their text and source', async t => {
  const app=await harness(t,{payload:makeMeta([episode(0,1,{title:undefined,overview:undefined,name:'Special',description:'Special synopsis'})]),imdbData:{id:'tt1000000',seasons:{0:{1:{r:9,v:10}}}}});
- const v=(await(await app.request()).json()).meta.videos[0];assert.equal(v.title,'Special · ⭐ 9.0');assert.equal(v.name,'Special · ⭐ 9.0');assert.equal(v.description,'⭐ IMDb episode: 9.0/10\n\nSpecial synopsis');
+ const v=(await(await app.request()).json()).meta.videos[0];assert.equal(v.title,'Special · 🏆 9.0');assert.equal(v.name,'Special · 🏆 9.0');assert.equal(v.description,'🏆 IMDb episode: 9.0/10\n\nSpecial synopsis');
 });
 
 test('returns original metadata on rating-provider failure without exposing fetch errors', async t => {
@@ -111,4 +111,29 @@ test('TMDB episode IDs use direct TMDB scores without assuming IMDb numbering eq
  const payload={meta:{id:'tmdb:321',imdb_id:'tt1000000',videos:[episode(1,1,{id:'tmdb:321:1:1'})]}};
  const app=await harness(t,{payload,tmdbEpisodes:[{season_number:1,episode_number:1,vote_average:7.3,vote_count:100}]});
  const result=await(await app.request('meta/series/tmdb:321.json')).json();assert.match(result.meta.videos[0].title,/TMDB 7.3/);assert.equal(app.calls.filter(u=>u.includes('imdb-episode-dataset')).length,0);
+});
+
+test('cinematic icons follow displayed score thresholds for IMDb and TMDB in every text field', async t => {
+ const cases = [
+  [10, '10.0', '🏆'], [9, '9.0', '🏆'], [8.96, '9.0', '🏆'],
+  [8.9, '8.9', '🔥'], [8, '8.0', '🔥'], [7.96, '8.0', '🔥'],
+  [7.9, '7.9', '⭐'], [7, '7.0', '⭐'], [6.96, '7.0', '⭐'],
+  [6.9, '6.9', '👍'], [6, '6.0', '👍'], [5.96, '6.0', '👍'],
+  [5.9, '5.9', '👎'], [0.1, '0.1', '👎'],
+ ];
+ for (const source of ['IMDb', 'TMDB']) {
+  const videos = cases.map((_, i) => episode(1, i + 1, { name: `Episode ${i + 1}`, description: 'Original synopsis' }));
+  const imdbData = source === 'IMDb' ? { id: 'tt1000000', seasons: { 1: Object.fromEntries(cases.map(([r], i) => [i + 1, { r, v: 100 }])) } } : null;
+  const tmdbEpisodes = cases.map(([vote_average], i) => ({ season_number: 1, episode_number: i + 1, vote_average, vote_count: 100, air_date: '2020-01-01' }));
+  const app = await harness(t, { payload: makeMeta(videos), imdbData, tmdbEpisodes });
+  const result = (await (await app.request()).json()).meta.videos;
+  for (const [i, [, value, icon]] of cases.entries()) {
+   const expectedTitle = `Episode ${i + 1} · ${icon} ${source === 'TMDB' ? 'TMDB ' : ''}${value}`;
+   const expectedDescription = `${icon} ${source} episode: ${value}/10\n\nOriginal synopsis`;
+   assert.equal(result[i].title, expectedTitle);
+   assert.equal(result[i].name, expectedTitle);
+   assert.equal(result[i].overview, expectedDescription);
+   assert.equal(result[i].description, expectedDescription);
+  }
+ }
 });

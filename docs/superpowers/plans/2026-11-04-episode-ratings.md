@@ -47,3 +47,13 @@
 - [ ] Verify deployed wrapper metadata and preserve the actual private install link in a user-facing private artifact.
 - [ ] Install/order through available Stremio UI, or provide the exact concrete remaining client step if the client cannot be controlled.
 - [ ] Update owned planning files, inspect completion checker and report actual results and any client-verification gap.
+
+## Cinematic icons update
+
+User selected the cinematic thresholds in the design amendment. Implement directly in the existing isolated worktree.
+
+- [x] Add HTTP integration coverage for every threshold, rounding across thresholds, IMDb/TMDB labels and title/name/overview/description consistency; observe failure.
+- [x] Select the icon from the displayed score in `src/episodeRatings.js`; reuse it in both text fields and update user documentation.
+- [x] Run `node --test` and `git diff --check`, and review the small diff (48 tests pass).
+
+Release through the existing Azure pipeline and verify live metadata; record the release result in the task progress file.

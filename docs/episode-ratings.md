@@ -2,6 +2,8 @@
 
 The `/episode-ratings` metadata-only addon adds each episode's own IMDb score beside its title and above its synopsis. Missing IMDb scores fall back to TMDB and are labelled accordingly. Episodes without a usable rating remain unchanged.
 
+The title and description use cinematic icons based on the displayed score: 🏆 9.0–10, 🔥 8.0–8.9, ⭐ 7.0–7.9, 👍 6.0–6.9, 👎 below 6.0. For example, `Pilot · 🏆 9.1`. IMDb stays omitted from titles; TMDB fallback scores keep their source label.
+
 Keep AIOMetadata installed for its catalogs, artwork and settings. Install this additional addon and place it before AIOMetadata in Stremio's addon order. Keep AIOStreams installed for streams. No movie metadata, thumbnails, video IDs or numbering are changed. Only canonical IMDb/TMDB episode IDs are enriched; other ID schemes are passed through without guessing.
 
 ## Personal configuration

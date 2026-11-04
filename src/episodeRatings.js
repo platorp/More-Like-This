@@ -116,11 +116,13 @@ function createEpisodeRatingsRouter({ fetchImpl = globalThis.fetch, ratingTimeou
    const score = scores.get(index);
    if (!score) return video;
    const value = score.value.toFixed(1);
+   const displayedScore = Number(value);
+   const icon = displayedScore >= 9 ? '🏆' : displayedScore >= 8 ? '🔥' : displayedScore >= 7 ? '⭐' : displayedScore >= 6 ? '👍' : '👎';
    const baseTitle = video.title || video.name || `Episode ${video.episode}`;
    const sourceLabel = score.source === 'IMDb' ? '' : `${score.source} `;
-   const title = `${baseTitle} · ⭐ ${sourceLabel}${value}`;
+   const title = `${baseTitle} · ${icon} ${sourceLabel}${value}`;
    const synopsis = video.overview || video.description || '';
-   const overview = `⭐ ${score.source} episode: ${value}/10${synopsis ? `\n\n${synopsis}` : ''}`;
+   const overview = `${icon} ${score.source} episode: ${value}/10${synopsis ? `\n\n${synopsis}` : ''}`;
    return { ...video, title, ...(video.name != null ? { name: title } : {}), overview, ...(video.description != null ? { description: overview } : {}) };
   });
   return { ...meta, videos };
