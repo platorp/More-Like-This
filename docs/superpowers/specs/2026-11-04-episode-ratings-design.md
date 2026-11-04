@@ -1,6 +1,6 @@
 # Episode ratings in AIOMetadata text
 
-The user chose a small metadata wrapper on the existing Azure More Like This app instead of self-hosting AIOMetadata. It adds each episode's own score to its title (`Pilot · ⭐ IMDb 9.1`) and above its synopsis (`⭐ IMDb episode: 9.1/10`). IMDb is primary and TMDB is the fallback, with the actual source always labelled. Rotten Tomatoes is outside this change after the user's correction. Missing, unaired or ambiguously mapped episode scores leave the original text unchanged.
+The user chose a small metadata wrapper on the existing Azure More Like This app instead of self-hosting AIOMetadata. It adds each episode's own score to its title (`Pilot · ⭐ 9.1`) and above its synopsis (`⭐ IMDb episode: 9.1/10`). IMDb is primary and TMDB is the fallback, with the actual source always labelled in the description. Rotten Tomatoes is outside this change after the user's correction. Missing, unaired or ambiguously mapped episode scores leave the original text unchanged.
 
 Keep the user's AIOMetadata addon installed for catalogs. The additional metadata-only addon is placed before AIOMetadata in Stremio's addon order. It forwards series metadata to the user's existing AIOMetadata configuration, preserves all episode IDs, numbering, artwork, streams and other fields, and changes only rated episodes' text. It does not change recommendation behavior, AIOStreams configuration, or poster services.
 

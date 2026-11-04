@@ -32,7 +32,7 @@
 - [ ] Write failing integration tests with a real HTTP Express server, real configuration encryption and stubbed external HTTP responses.
 - [ ] Run `node --test test/episodeRatings.test.js`; expect missing implementation failure, then test meaningful cases as they are added.
 - [ ] Implement the router and bounded/cache-coalesced IMDb/TMDB lookups. Default rating deadline 2500ms, upstream timeout 10000ms, JSON limit 2MiB, cached provider data 12h with at most 128 entries.
-- [ ] Add malformed/tampered config, invalid upstream/redirect, missing/zero/unrated/unaired/mismatched IDs, season-zero, rating-error, coalescing, bounded-response and abort tests. Rated title is `Title · ⭐ IMDb 8.7`; description prefix is `⭐ IMDb episode: 8.7/10` or equivalent labelled TMDB fallback.
+- [ ] Add malformed/tampered config, invalid upstream/redirect, missing/zero/unrated/unaired/mismatched IDs, season-zero, rating-error, coalescing, bounded-response and abort tests. Rated title is `Title · ⭐ 8.7` for IMDb; TMDB fallback retains its label; description prefix is `⭐ IMDb episode: 8.7/10` or equivalent labelled TMDB fallback.
 - [ ] Mount router before existing routes; run `node --test` and `git diff --check`, expect all passing.
 - [ ] Commit the tested implementation and obtain one independent final review. Address material findings with a failing regression followed by a passing full suite.
 

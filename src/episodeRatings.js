@@ -117,7 +117,8 @@ function createEpisodeRatingsRouter({ fetchImpl = globalThis.fetch, ratingTimeou
    if (!score) return video;
    const value = score.value.toFixed(1);
    const baseTitle = video.title || video.name || `Episode ${video.episode}`;
-   const title = `${baseTitle} · ⭐ ${score.source} ${value}`;
+   const sourceLabel = score.source === 'IMDb' ? '' : `${score.source} `;
+   const title = `${baseTitle} · ⭐ ${sourceLabel}${value}`;
    const synopsis = video.overview || video.description || '';
    const overview = `⭐ ${score.source} episode: ${value}/10${synopsis ? `\n\n${synopsis}` : ''}`;
    return { ...video, title, ...(video.name != null ? { name: title } : {}), overview, ...(video.description != null ? { description: overview } : {}) };
