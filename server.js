@@ -3,6 +3,7 @@
 const { streamHandler } = require("./src/streamHandler");
 const { metaHandler } = require("./src/metaHandler");
 const { catalogHandler } = require("./src/catalogHandler");
+const { createEpisodeRatingsRouter } = require("./src/episodeRatings");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -126,6 +127,7 @@ async function startServer() {
 	); // Apply CORS middleware to all routes
 
 	app.use(express.json()); // Middleware to parse JSON bodies
+	app.use("/episode-ratings", createEpisodeRatingsRouter());
 
 	app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
 
